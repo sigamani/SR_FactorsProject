@@ -9,7 +9,8 @@ import pypyodbc
 
 
 
-py.sign_in('michael.sigamani_sr', '16jtbqurle')
+#py.sign_in('michael.sigamani_sr', '16jtbqurle')
+py.sign_in('sigamani1982','lrix3k0xxv')
 
 #REDSHIFT CONNECTION
 engine = create_engine("postgresql+psycopg2://michael:Enterpr1$e@sr-data.cqwafjoudxie.eu-west-1.redshift.amazonaws.com:5439/worldscope" )
@@ -39,10 +40,13 @@ engine = create_engine("postgresql+psycopg2://michael:Enterpr1$e@sr-data.cqwafjo
 #m.makeBoxPlotTruncation(engine,30002)
 
 
+
+
 # New box plots
-#m.makeBoxPlot(engine,8376,False)
-m.makeBoxPlot(engine,8376,True)
-#m.makeTruncationPlot(engine,8326)
+#m.makeBoxPlot(engine,8316,False)
+#m.makeBoxPlot(engine,8316,True)
+m.makeTruncationPlot(engine,8316)
+
 
 # 5) Make percentile plots
 #m.makePercentilePlot(engine, 30007) 

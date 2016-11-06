@@ -158,11 +158,22 @@ def makeBoxPlot(engine, factorval, isTruncated):
         else:
             factorName = 'Return on Invested Capital (Non-truncated)'
 
+    if (factorval == 30003):
+        listOfFactors.append( go.Scatter( x = dfMean.year, y = dfMean.tw_avg_ae, mode = 'lines', name = 'Weighted Mean', marker=dict(color='blue')))
+        ymax = 50
+        ymin = 0
+            
+        if isTruncated:
+            factorName = 'Assets over Equity (Truncated)'
+        else:
+            factorName = 'Assets over Equity (Non-truncated)'
+
 
     for i in range(n):
          
         if isTruncated:
             y1 = df[(df['data'] <= df['threesigp']) & (df['data'] >= df['threesigm']) & (df['year'] == years[i])]
+            #y1 = df[df['year'] == years[i]]
         else: 
             y1 = df[df['year'] == years[i]]
                                                                             

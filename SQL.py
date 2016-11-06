@@ -1,14 +1,14 @@
 
 TruncationLookup = {"DividendPayoutRatioMinus":      0,     "DividendPayoutRatioPlus":        100,
                     "GrossProfitMarginMinus":       -3000,  "GrossProfitMarginPlus":          100,
-                    "OperatingProfitMarginMinus":   -12000, "OperatingProfitMarginPlus":      100,
+                    "OperatingProfitMarginMinus":   -10000, "OperatingProfitMarginPlus":      100,
                     "GrossProfitOverAssetsMinus":   -150,   "GrossProfitOverAssetsPlus":      150,
                     "EBITOverEVMinus":              -5,     "EBITOverEVPlus":                 5,
                     "NetDebtPaydownYieldMinus":     -1000,  "NetDebtPaydownYieldPlus":        1000,
                     "TotalAssetTurnoverMinus":       0,     "TotalAssetTurnoverPlus":         5,
                     "ReturnOnAssetsMinus":          -500,   "ReturnOnAssetsPlus":             50,
                     "ReturnOnInvestedCapitalMinus": -500,   "ReturnOnInvestedCapitalPlus":    50,
-                    "AssetsOverEquityMinus":         0,     "AssetsOverEquityPlus":           50 
+                    "AssetsOverEquityMinus":         0,     "AssetsOverEquityPlus":           100 
                     }
 
 
@@ -373,6 +373,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 09504 -- Dividend payout ratio
+            and w2.data <= """+ str(TruncationLookup["DividendPayoutRatioPlus"]) + """ and w2.data >= """+ str(TruncationLookup["DividendPayoutRatioMinus"]) + """             
             group by w2.fieldid, w2.year
             ) stdevTable
             join (
@@ -383,7 +384,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 09504 -- Dividend payout ratio
             ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year
-            and f.data <= """+ str(TruncationLookup["DividendPayoutRatioPlus"]) + """ and f.data >= """+ str(TruncationLookup["DividendPayoutRatioMinus"]) + """             
+            --and f.data <= stdevTable.ThreeSigP and f.data >= stdevTable.ThreeSigM
             ) k
             group by k.year
             ) table1
@@ -395,51 +396,8 @@ def stringMeanWeightedTruncated(s):
             from wsfactorsubset w1
             join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
-            where w2.fieldid = 18191 -- EBIT
-            group by w2.fieldid, w2.year
-            ) stdevTable
-            join (
-            select w2.data, w2.fieldid, w2.year, w2.wscode, w3.data as mcap_data
-
-            from wsfactorsubset w1
-            join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
-            join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
-            where w2.fieldid = 18191 -- EBIT
-            ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year and f.data>stdevTable.ThreeSigM and f.data<stdevTable.ThreeSigP
-            ) k
-            group by k.year
-            ) table2 on table1.year = table2.year
-
-            left join (
-            select k.year, avg(k.data) as truncated_mean_a, SUM(k.data*k.mcap_data)/SUM(case when k.data is not null then k.mcap_data else 0 end) as truncated_weighted_mean_a from
-            (select f.year, f.data, f.mcap_data, stdevTable.ThreeSigP, stdevTable.ThreeSigM from (
-            select w2.fieldid, w2.year, (avg(w2.data)+3*STDDEV(w2.data)) as ThreeSigP, (avg(w2.data)-3*STDDEV(w2.data)) as ThreeSigM
-            from wsfactorsubset w1
-            join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
-            join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
-            where w2.fieldid = 18100 -- EV
-            group by w2.fieldid, w2.year
-            ) stdevTable
-            join (
-            select w2.data, w2.fieldid, w2.year, w2.wscode, w3.data as mcap_data
-
-            from wsfactorsubset w1
-            join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
-            join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
-            where w2.fieldid = 18100 -- EV
-            ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year and f.data>stdevTable.ThreeSigM and f.data<stdevTable.ThreeSigP
-            ) k
-            group by k.year
-            ) table3 on table1.year = table3.year
-
-            left join (
-            select k.year, avg(k.data) as truncated_mean_a, SUM(k.data*k.mcap_data)/SUM(case when k.data is not null then k.mcap_data else 0 end) as truncated_weighted_mean_a from
-            (select f.year, f.data, f.mcap_data, stdevTable.ThreeSigP, stdevTable.ThreeSigM from (
-            select w2.fieldid, w2.year, (avg(w2.data)+3*STDDEV(w2.data)) as ThreeSigP, (avg(w2.data)-3*STDDEV(w2.data)) as ThreeSigM
-            from wsfactorsubset w1
-            join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
-            join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 30004 -- Net Debt Paydown Yield
+            and w2.data <= """+ str(TruncationLookup["NetDebtPaydownYieldPlus"]) + """ and w2.data >= """+ str(TruncationLookup["NetDebtPaydownYieldMinus"]) + """
             group by w2.fieldid, w2.year
             ) stdevTable
             join (
@@ -449,8 +407,8 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 30004 -- Net Debt Paydown Yield
-            ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year 
-            and f.data <= """+ str(TruncationLookup["NetDebtPaydownYieldPlus"]) + """ and f.data >= """+ str(TruncationLookup["NetDebtPaydownYieldMinus"]) + """
+            ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year
+            and f.data <= stdevTable.ThreeSigP and f.data >= stdevTable.ThreeSigM 
             ) k
             group by k.year
             ) table4 on table1.year = table4.year
@@ -463,6 +421,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 08401 -- Total Asset Turnover
+            and w2.data <= """+ str(TruncationLookup["TotalAssetTurnoverPlus"]) + """ and w2.data >= """+ str(TruncationLookup["TotalAssetTurnoverMinus"]) + """
             group by w2.fieldid, w2.year
             ) stdevTable
             join (
@@ -473,7 +432,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 08401 -- Total Asset Turnover
             ) f on f.fieldid = stdevTable.fieldid 
-            and f.data <= """+ str(TruncationLookup["TotalAssetTurnoverPlus"]) + """ and f.data >= """+ str(TruncationLookup["TotalAssetTurnoverMinus"]) + """
+            and f.data <= stdevTable.ThreeSigP and f.data >= stdevTable.ThreeSigM
             ) k
             group by k.year
             ) table5 on table1.year = table5.year
@@ -487,6 +446,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 30007 -- Gross Profit Margin
+            and w2.data <= """+ str(TruncationLookup["GrossProfitMarginPlus"]) + """ and w2.data >= """+ str(TruncationLookup["GrossProfitMarginMinus"]) + """ 
             group by w2.fieldid, w2.year
             ) stdevTable
             join (
@@ -497,7 +457,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 30007 -- Gross Profit Margin
             ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year
-            and f.data <= """+ str(TruncationLookup["GrossProfitMarginPlus"]) + """ and f.data >= """+ str(TruncationLookup["GrossProfitMarginMinus"]) + """ 
+            and f.data <= stdevTable.ThreeSigP and f.data >= stdevTable.ThreeSigM
             ) k
             group by k.year
             ) table6 on table1.year = table6.year
@@ -511,6 +471,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 30006 -- Gross Income over Assets
+            and w2.data <= """+ str(TruncationLookup["GrossProfitOverAssetsPlus"]) + """ and w2.data >= """+ str(TruncationLookup["GrossProfitOverAssetsMinus"]) + """ 
             group by w2.fieldid, w2.year
             ) stdevTable
             join (
@@ -521,7 +482,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 30006 -- Gross Profit over Assets
             ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year 
-            and f.data <= """+ str(TruncationLookup["GrossProfitOverAssetsPlus"]) + """ and f.data >= """+ str(TruncationLookup["GrossProfitOverAssetsMinus"]) + """ 
+            and f.data <= stdevTable.ThreeSigP and f.data >= stdevTable.ThreeSigM
             ) k
             group by k.year
             ) table7 on table1.year = table7.year
@@ -535,6 +496,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 08316 -- Operating Profit Margin
+            and w2.data <= """+ str(TruncationLookup["OperatingProfitMarginPlus"]) + """ and w2.data >= """+ str(TruncationLookup["OperatingProfitMarginMinus"]) + """ 
             group by w2.fieldid, w2.year
             ) stdevTable
             join (
@@ -545,7 +507,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 08316 -- Operating Profit Margin
             ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year 
-            and f.data <= """+ str(TruncationLookup["OperatingProfitMarginPlus"]) + """ and f.data >= """+ str(TruncationLookup["OperatingProfitMarginMinus"]) + """ 
+            and f.data <= stdevTable.ThreeSigP and f.data >= stdevTable.ThreeSigM
             ) k
             group by k.year
             ) table8 on table1.year = table8.year
@@ -559,6 +521,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 08326 -- Return on Assets
+            and w2.data <= """+ str(TruncationLookup["ReturnOnAssetsPlus"]) + """ and w2.data >= """+ str(TruncationLookup["ReturnOnAssetsMinus"]) + """ 
             group by w2.fieldid, w2.year
             ) stdevTable
             join (
@@ -569,7 +532,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 08326 -- Return on Assets
             ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year 
-            and f.data <= """+ str(TruncationLookup["ReturnOnAssetsPlus"]) + """ and f.data >= """+ str(TruncationLookup["ReturnOnAssetsMinus"]) + """ 
+            and f.data <= stdevTable.ThreeSigP and f.data >= stdevTable.ThreeSigM
             ) k
             group by k.year
             ) table9 on table1.year = table9.year
@@ -583,6 +546,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 08376 -- Return on Invested Capital
+            and w2.data <= """+ str(TruncationLookup["ReturnOnInvestedCapitalPlus"]) + """ and w2.data >= """+ str(TruncationLookup["ReturnOnInvestedCapitalMinus"]) + """
             group by w2.fieldid, w2.year
             ) stdevTable
             join (
@@ -593,7 +557,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 08376 -- Return on Invested Capital
             ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year 
-            and f.data <= """+ str(TruncationLookup["ReturnOnInvestedCapitalPlus"]) + """ and f.data >= """+ str(TruncationLookup["ReturnOnInvestedCapitalMinus"]) + """
+            and f.data <= stdevTable.ThreeSigP and f.data >= stdevTable.ThreeSigM 
             ) k
             group by k.year
             ) table10 on table1.year = table10.year
@@ -607,6 +571,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 30003 -- Assets/Equity
+            and w2.data <= """+ str(TruncationLookup["AssetsOverEquityPlus"]) + """ and w2.data >= """+ str(TruncationLookup["AssetsOverEquityMinus"]) + """  
             group by w2.fieldid, w2.year
             ) stdevTable
             join (
@@ -617,7 +582,7 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 30003 -- Assets/Equity
             ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year 
-             and f.data <= """+ str(TruncationLookup["AssetsOverEquityPlus"]) + """ and f.data >= """+ str(TruncationLookup["AssetsOverEquityMinus"]) + """             
+            --and f.data <= stdevTable.ThreeSigP and f.data >= stdevTable.ThreeSigM           
             ) k
             group by k.year
             ) table11 on table1.year = table11.year
@@ -630,29 +595,8 @@ def stringMeanWeightedTruncated(s):
             from wsfactorsubset w1
             join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
-            where w2.fieldid = 3501 -- Equities
-            group by w2.fieldid, w2.year
-            ) stdevTable
-            join (
-            select w2.data, w2.fieldid, w2.year, w2.wscode, w3.data as mcap_data
-
-            from wsfactorsubset w1
-            join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
-            join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
-            where w2.fieldid = 3501 -- Equities
-            ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year and f.data>stdevTable.ThreeSigM and f.data<stdevTable.ThreeSigP
-            ) k
-            group by k.year
-            ) table12 on table1.year = table12.year
-
-            left join (
-            select k.year, avg(k.data) as truncated_mean_a, SUM(k.data*k.mcap_data)/SUM(case when k.data is not null then k.mcap_data else 0 end) as truncated_weighted_mean_a from
-            (select f.year, f.data, f.mcap_data, stdevTable.ThreeSigP, stdevTable.ThreeSigM from (
-            select w2.fieldid, w2.year, (avg(w2.data)+3*STDDEV(w2.data)) as ThreeSigP, (avg(w2.data)-3*STDDEV(w2.data)) as ThreeSigM
-            from wsfactorsubset w1
-            join wsfactorsubset w2 on w1.wscode = w2.wscode and w1.year = w2.year and w1.fieldid = 5055
-            join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 30002 -- EBIT/EV
+            and w2.data <= """+ str(TruncationLookup["EBITOverEVPlus"]) + """ and w2.data >= """+ str(TruncationLookup["EBITOverEVMinus"]) + """ 
             group by w2.fieldid, w2.year
             ) stdevTable
             join (
@@ -663,14 +607,14 @@ def stringMeanWeightedTruncated(s):
             join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
             where w2.fieldid = 30002 -- EBIT/EV
             ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year
-            and f.data <= """+ str(TruncationLookup["EBITOverEVPlus"]) + """ and f.data >= """+ str(TruncationLookup["EBITOverEVMinus"]) + """ 
+            and f.data <= stdevTable.ThreeSigP and f.data >= stdevTable.ThreeSigM 
             ) k
             group by k.year
             ) table13 on table1.year = table13.year
 
             order by year asc
             """
-
+    print(string)        
     return string
 
 
@@ -779,8 +723,9 @@ def stringTruncationNum(s):
 		    join wsfactorsubset w3 on w1.wscode = w3.wscode and w1.year = w3.year and w3.fieldid = 7210
 		    where w2.fieldid = """+ str(s) + """
 		    and w2.year >= 1980 
-	    ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year and (f.data > stdevTable.ThreeSigP or f.data < stdevTable.ThreeSigM) 
-
+	    ) f on f.fieldid = stdevTable.fieldid and f.year = stdevTable.year 
+        --and (f.data > """+ str(truncationP) + """  or f.data < """+ str(truncationM) + """ ) -- A/E and DPR only 
+        and (f.data > stdevTable.ThreeSigP or f.data < stdevTable.ThreeSigM) 
     ) k
     group by k.year
     order by k.year asc
