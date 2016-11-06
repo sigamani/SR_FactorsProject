@@ -4,8 +4,10 @@ import SQL as sqlquery
 import psycopg2
 from sqlalchemy import create_engine
 import plotly.plotly as py
-import helperModule as m
+import helperModule2 as m
 import pypyodbc
+
+
 
 py.sign_in('michael.sigamani_sr', '16jtbqurle')
 
@@ -30,6 +32,23 @@ engine = create_engine("postgresql+psycopg2://michael:Enterpr1$e@sr-data.cqwafjo
 # 4) Different method coverage
 #m.makeCoveragePlot2(engine)
 
+#m.makeBoxPlotNoTruncation(engine,30002)
+#m.makeBoxPlotTruncation(engine,30004)
 
-#m.makeBoxPlotNoTruncation(engine,3501)
-m.makeBoxPlotTruncation(engine,3501)
+
+#m.makeBoxPlotTruncation(engine,30002)
+
+
+# New box plots
+#m.makeBoxPlot(engine,8376,False)
+m.makeBoxPlot(engine,8376,True)
+#m.makeTruncationPlot(engine,8326)
+
+# 5) Make percentile plots
+#m.makePercentilePlot(engine, 30007) 
+
+#for n in (9504,30007,8316,30006,30002,30004,8401,8326,8376,30003):
+#    print('Making percentile plot %i' % (n))
+#    m.makePercentilePlot(engine,n)
+        
+
