@@ -41,7 +41,7 @@ def stringCoverage():
 	    on f.wscode = Price.wscode
 	    and f.timeseriesfrequency = Price.timeseriesfrequency
 	    and f.year = Price.year
-	    and f.fieldid in(09504,18191,18100,3255,08401,08306,8316,30005,08326,08376,02999,03501,01001,05201,7210)
+	    and f.fieldid in(09504,18191,18100,3255,08401,30007,8316,30005,08326,08376,02999,03501,01001,05201,7210)
 	    left join wsfactorsubsetfilled MCap
 	    on MCap.wscode = Price.wscode
 	    and MCap.timeseriesfrequency = Price.timeseriesfrequency
