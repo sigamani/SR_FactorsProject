@@ -6,6 +6,8 @@ import plotly.tools as tls
 import SQL2 as sqlquery
 import string
 
+from plotly.tools import FigureFactory as FF
+
 
 def makeCoveragePlot(engine):
 
@@ -375,3 +377,31 @@ def makePercentilePlot(engine,factorval):
 
     fig = go.Figure(data=data, layout=layout)
     py.plot(fig, filename=factorName+"-Percentiles")
+
+
+
+def makeCorrelationByFactorVal(engine):
+
+    df = pd.read_sql_query(string2, engine)
+    corr = df.corr(method='spearman')
+
+    fig = FF.create_annotated_heatmap(x = list(corr.columns.values), y = list(corr.columns.values), z=np.round(corr.values,2))
+
+
+    fig['layout'].update(
+        title='Correlations by factor val. (Dec 2015)',
+        xaxis=dict(ticks='', ticksuffix='', side='bottom'),
+        width=450,
+        height=300,
+        margin=go.Margin(
+        l=180,
+        r=80,
+        b=100,
+        t=100,
+        pad=4
+        ),
+        autosize=False
+    )
+
+    py.iplot(fig, filename='Correlations')
+

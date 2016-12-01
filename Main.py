@@ -4,7 +4,8 @@ import SQL as sqlquery
 import psycopg2
 from sqlalchemy import create_engine
 import plotly.plotly as py
-import helperModule2 as m
+import helperModule as m
+import helperModule2 as m2
 import pypyodbc
 
 
@@ -17,6 +18,10 @@ engine = create_engine("postgresql+psycopg2://michael:Enterpr1$e@sr-data.cqwafjo
 
 #LOCAL CONNECTION
 #engine = pypyodbc.connect('Driver={SQL Server};Server=localhost;Database=WSHistory;')
+
+#AWS CONNECTION
+#engine = create_engine("mssql+pymssql://SRPA_ENT:SRPA_ENT@10.0.50.29/UpdateEquityData" )
+
 
 # 1) Make coverage plot of all 11 factors considered:
 #m.makeCoveragePlot(engine)
@@ -40,12 +45,10 @@ engine = create_engine("postgresql+psycopg2://michael:Enterpr1$e@sr-data.cqwafjo
 #m.makeBoxPlotTruncation(engine,30002)
 
 
-
-
 # New box plots
 #m.makeBoxPlot(engine,8316,False)
 #m.makeBoxPlot(engine,8316,True)
-m.makeTruncationPlot(engine,8316)
+#m.makeTruncationPlot(engine,8316)
 
 
 # 5) Make percentile plots
@@ -54,5 +57,12 @@ m.makeTruncationPlot(engine,8316)
 #for n in (9504,30007,8316,30006,30002,30004,8401,8326,8376,30003):
 #    print('Making percentile plot %i' % (n))
 #    m.makePercentilePlot(engine,n)
-        
 
+
+#6) 
+
+#m2.getMarketsAnalyzerOutput('Regularity_3Month')
+#m2.getCorrelationOfReturns("UNITED STATES")        
+
+#7) Make correlation with factor val
+#pm.makeCorrelationByFactorVal(engine)

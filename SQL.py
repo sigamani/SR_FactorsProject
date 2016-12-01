@@ -863,3 +863,152 @@ def getPercentiles(s):
     """ 
 
     return string
+
+
+
+stringCorrelationFactor = """
+
+    select 
+    j.[201512] as [Book Value],
+    c.Value as [Div Pay Ratio (N)],
+    l.[201512] as [Div Yld],
+    n.[201512] as [Engs Yld],
+    k.[201512] as [Cfl Yld],
+    p.[201512] as [Sales to Pr],
+    b.Value as [EBIT to EV (N)],
+    m.[201512] as [EBITDA to Pr],
+	h.Value as [RoA (N)],
+	q.[201512] as [RoE],
+	g.Value as [RoIC (N)],
+	q.[201512] as [Sustainable GR],
+    a.Value as [Asset Turnover (N)], 
+	e.Value as [Gross Prof to Assts (N)],
+    o.[201512] as [Sales Gr],
+    s.[201512] as [Inc to Sales],
+	f.Value as [Op Prof Marg (N)],
+	d.Value as [Gross Prof Marg (N)],
+    i.Value as [Ass to Equity (N)]
+
+    from 
+    (
+	    select 
+	    fd.* 
+	    from factordata fd
+	    where fd.factorid = 101
+	    and fd.factordate=201512
+    ) a full join
+    (
+	    select 
+	    fd.* 
+	    from factordata fd
+	    where fd.factorid = 102
+	    and fd.factordate=201512
+    ) b on a.wscode=b.wscode
+	full join
+    (
+	    select 
+	    fd.* 
+	    from factordata fd
+	    where fd.factorid = 103
+	    and fd.factordate=201512
+    ) c on a.wscode=c.wscode
+	full join
+    (
+	    select 
+	    fd.* 
+	    from factordata fd
+	    where fd.factorid = 104
+	    and fd.factordate=201512
+    ) d on a.wscode=d.wscode
+	full join
+    (
+	    select 
+	    fd.* 
+	    from factordata fd
+	    where fd.factorid = 105
+	    and fd.factordate=201512
+    ) e on a.wscode=e.wscode
+	full join
+    (
+	    select 
+	    fd.* 
+	    from factordata fd
+	    where fd.factorid = 106
+	    and fd.factordate=201512
+    ) f on a.wscode=f.wscode
+	full join
+    (
+	    select 
+	    fd.* 
+	    from factordata fd
+	    where fd.factorid = 94
+	    and fd.factordate=201512
+    ) g on a.wscode=g.wscode
+	full join
+    (
+	    select 
+	    fd.* 
+	    from factordata fd
+	    where fd.factorid = 95
+	    and fd.factordate=201512
+    ) h on a.wscode=h.wscode
+	full join
+    (
+	    select 
+	    fd.* 
+	    from factordata fd
+	    where fd.factorid = 112
+	    and fd.factordate=201512
+    ) i on a.wscode=i.wscode
+	full join
+	(
+		select fd.[201512], fd.WSCode 
+	    from tbl_BVpShr_to_Price fd
+	) j on a.WSCode=j.WSCode
+	full join
+	(
+		select fd.[201512], fd.WSCode 
+	    from tbl_ACFpShr_to_Price fd
+	) k on a.WSCode=k.WSCode
+	full join
+	(
+		select fd.[201512], fd.WSCode 
+	    from tbl_ADivpShr_to_price fd
+	) l on a.WSCode=l.WSCode
+	full join
+	(
+		select fd.[201512], fd.WSCode 
+	    from tbl_EBITDA_To_Price fd
+	) m on a.WSCode=m.WSCode
+	full join
+	(
+		select fd.[201512], fd.WSCode 
+	    from tbl_AEpShr_to_Price fd
+	) n on a.WSCode=n.WSCode
+	full join
+	(
+		select fd.[201512], fd.WSCode 
+	    from tbl_Msales_GR fd
+	) o on a.WSCode=o.WSCode
+	full join
+	(
+		select fd.[201512], fd.WSCode 
+	    from tbl_ASalespShr_to_Price fd
+	) p on a.WSCode=p.WSCode
+	full join
+	(
+		select fd.[201512], fd.WSCode 
+	    from tbl_SustainableGr fd
+	) q on a.WSCode=q.WSCode
+	full join
+	(
+		select fd.[201512], fd.WSCode 
+	    from tbl_MRoE fd
+	) r on a.WSCode=r.WSCode
+	full join
+	(
+		select fd.[201512], fd.WSCode 
+	    from tbl_MIncToSales fd
+	) s on a.WSCode=s.WSCode
+
+"""
